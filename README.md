@@ -1,4 +1,4 @@
-# prc
+# rpc
 Application that implements simple rpc communication.
 
 ## Getting Started
@@ -23,11 +23,11 @@ make
 ./stubgen maths.x
 cp maths.h maths_client.cpp ../client
 cp maths.h maths_server.cpp ../server
-cp ../server
+cd ../server
 [edit maths_server.cpp if needed]
 cmake CMakeLists.txt
 make
-cp ../client
+cd ../client
 cmake CMakeLists.txt
 make
 ```
