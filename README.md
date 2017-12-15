@@ -1,4 +1,4 @@
-# prc
+# rpc
 Application that implements simple rpc communication.
 
 ## Getting Started
