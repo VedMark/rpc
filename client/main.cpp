@@ -8,7 +8,7 @@ extern SpdLogger logger;
 
 
 void run_program_1(char *host) {
-    float argument      = 10;
+    float argument      = -8;
     float *result       = nullptr;
 
     try {

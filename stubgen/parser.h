@@ -27,7 +27,6 @@ class StubGenerator{
     };
 
     StringDictionary typeDictionary;
-    StringDictionary castDictionary;
 
 public:
     class ParseException{
@@ -51,14 +50,13 @@ private:
     void generateHfile(std::string &fileName, std::string &program, std::string &programVersion,
                            std::vector<version> &versions) const;
 
-    void generateCppClientFile(std::string &fileName, std::string &program,
+    void generateCppClientFile(std::string &fileName, std::string &prog_version,
                                    std::vector<StubGenerator::version> &versions) const;
 
     void generateCppServerFile(std::string &fileName, std::string &program,
                                    std::vector<StubGenerator::version> &versions) const;
 
     std::string getType(std::string) const;
-    std::string getCast(std::string) const;
 };
 
 #endif //STUBGEN_SIMPLE_H

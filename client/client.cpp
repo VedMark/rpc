@@ -4,6 +4,7 @@ SpdLogger logger = spdlog::stdout_logger_st("logger");
 
 void receive_message::readReceiveMessage(const char *const buff) {
     memcpy(this, buff, sizeof(*this));
+    data = new char[szData];
     memcpy(data, buff + sizeof(*this), szData);
 }
 
