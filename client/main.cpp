@@ -1,103 +1,99 @@
-#include <iostream>
 #include <spdlog/spdlog.h>
 
+#include "client.h"
 #include "maths.h"
 
 using SpdLogger = std::shared_ptr<spdlog::logger>;
+extern SpdLogger logger;
 
-void math_prog_1(char *host, SpdLogger &logger) {
-    CLIENT *client      = nullptr;
+
+void run_program_1(char *host) {
+    float argument      = 10;
+    float *result       = nullptr;
+
+    try {
+        ClientRPC client(AF_INET, SOCK_STREAM, 0, host);
+        client.connect();
+        logger->info("Connected to server " + std::string(host));
+
+        if (nullptr == (result = sqr_1(&argument, &client))) {
+            logger->error("v1: sqr(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v1: sqr(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
+
+        if (nullptr == (result = exp_1(&argument, &client))) {
+            logger->error("v1: exp(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v1: exp(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
+
+        if (nullptr == (result = log10_1(&argument, &client))) {
+            logger->error("v1: log10(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v1: log10(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
+
+        client.disconnect();
+        logger->info("disconected from server " + std::string(host));
+    }
+    catch (ClientRPC::NetworkException &exception) {
+        logger->error(exception.message());
+    }
+}
+
+void run_program_2(char *host) {
     float argument      = 0;
     float *result       = nullptr;
 
-    if (nullptr == (client = clnt_create(host,
-                                         MATH_PROG,
-                                         1,
-                                         "tcp"))) {
-        clnt_pcreateerror(host);
-        exit(1);
-    }
+    try {
+        ClientRPC client(AF_INET, SOCK_STREAM, IPPROTO_TCP, host);
+        client.connect();
 
-    logger->info("connected to server: " + std::string(host));
+        if (nullptr == (result = sqr_2(&argument, &client))) {
+            logger->error("v2: sqr(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v2: sqr(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
 
-    if (nullptr == (result = sqr_1(&argument, client))) {
-        clnt_perror(client, host);
-    }
-    else {
-        logger->info("v1: sqr(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
+        if (nullptr == (result = exp_2(&argument, &client))) {
+            logger->error("v2: exp(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v2: exp(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
 
-    if (nullptr == (result = exp_1(&argument, client))) {
-        clnt_perror(client, host);
-    }
-    else {
-        logger->info("v1: exp(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
+        if (nullptr == (result = log10_2(&argument, &client))) {
+            logger->error("v2: log10(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v2: log10(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
 
-    if (nullptr == (result = log10_1(&argument, client))) {
-        clnt_perror(client, host);
-    }
-    else {
-        logger->info("v1: log(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
+        if (nullptr == (result = abs_2(&argument, &client))) {
+            logger->error("v2: abs(" + std::to_string(argument) + "): Received incorrect answer");
+        }
+        else {
+            logger->info("v2: abs(" + std::to_string(argument) +") = "
+                         + std::to_string(*result));
+        }
 
-    clnt_destroy(client);
-    logger->info("disconected from server " + std::string(host));
-}
-
-void math_prog_2(char *host, SpdLogger &logger) {
-    CLIENT *client      = nullptr;
-    float argument       = -7;
-    float *result        = nullptr;
-
-    if (nullptr == (client = clnt_create(host,
-                                         MATH_PROG,
-                                         2,
-                                         "tcp"))) {
-        clnt_pcreateerror(host);
-        exit(1);
+        client.disconnect();
+        logger->info("disconected from server " + std::string(host));
     }
-
-    logger->info("connected to server:" + std::string(host));
-
-    if (nullptr == (result = sqr_2(&argument, client))) {
-        clnt_perror(client, host);
+    catch (ClientRPC::NetworkException &exception) {
+        logger->error(exception.message());
     }
-    else {
-        logger->info("v2: sqr(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
-
-
-    if (nullptr == (result = exp_2(&argument, client))) {
-        clnt_perror(client, host);
-    }
-    else {
-        logger->info("v2: exp(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
-
-    if (nullptr == (result = log10_2(&argument, client))) {
-        clnt_perror(client, host);
-    }
-    else {
-        logger->info("v2: log(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
-
-    if (nullptr == (result = abs_2(&argument, client))) {
-        clnt_perror(client, host);
-    }
-    else {
-        logger->info("v2: abs(" + std::to_string(argument) +") = "
-                     + std::to_string(*result));
-    }
-
-    clnt_destroy(client);
-    logger->info("disconected from server " + std::string(host));
 }
 
 int main(int argc, char **argv) {
@@ -109,13 +105,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    auto logger = spdlog::stdout_logger_st("logger");
     spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] [%l] %v");
 
     host = argv[1];
 
-    math_prog_1(host, logger);
-    math_prog_2(host, logger);
+    run_program_1(host);
+    run_program_2(host);
 
     return 0;
 }

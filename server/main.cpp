@@ -1,22 +1,16 @@
-#include <iostream>
-#include <spdlog/spdlog.h>
-#include <rpc/pmap_clnt.h>
-#include <arpa/inet.h>
 #include <csignal>
-
+#include "servicerpc.h"
 #include "maths.h"
 
-using SpdLogger = std::shared_ptr<spdlog::logger>;
+extern SpdLogger logger;
 
-auto logger = spdlog::stdout_logger_st("logger");
-
-void sighandler( int signal) {
-    logger->info("server finished working");
+void sighandler(int signal) {
+    logger->info("The service finished working");
     exit(0);
 }
 
 int main(int argc, char **argv) {
-    register SVCXPRT *transp;
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] [%l] %v");
 
     struct sigaction action;
     action.sa_handler = sighandler;
@@ -24,32 +18,22 @@ int main(int argc, char **argv) {
     sigemptyset(&action.sa_mask);
     sigaction (SIGINT, &action, nullptr);
 
-    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] [%l] %v");
+    try{
+        ServiceRPC service(AF_INET, SOCK_STREAM, 0);
 
-    pmap_unset (MATH_PROG, 1);
-    pmap_unset (MATH_PROG, 2);
+        if(!service.regVersionHandler(MATH_PROG, 1, math_prog_1)) {
+            logger->error("Cannot register " + std::to_string(MATH_PROG) + std::to_string(1));
+        }
+        if(!service.regVersionHandler(MATH_PROG, 2, math_prog_2)) {
+            logger->error("Cannot register " + std::to_string(MATH_PROG) + std::to_string(2));
+        }
 
-    transp = svctcp_create(RPC_ANYSOCK, 0, 0);
-    if (nullptr == transp) {
-        logger->error("cannot create tcp service");
-        return 1;
+        service.run();
     }
-    if (!svc_register(transp, MATH_PROG, 1, math_prog_1, IPPROTO_TCP)) {
-        logger->error("unable to register (MATH_PROG, 1, tcp)");
-        return 1;
-    }
-    if (!svc_register(transp, MATH_PROG, 2, math_prog_2, IPPROTO_TCP)) {
-        logger->error("unable to register (MATH_PROG, 2, tcp)");
-        return 1;
+    catch(const ServiceRPC::NetworkException &exception) {
+        logger->error(exception.message());
     }
 
-    char ip[ INET_ADDRSTRLEN ];
-    inet_ntop( AF_INET, &transp->xp_raddr, ip, INET_ADDRSTRLEN );
-
-    logger->info("the server is started at " + std::string(ip));
-
-    svc_run ();
-
-    logger->info("server finished working");
+    logger->info("The service has finished working");
     return 0;
 }

@@ -4,7 +4,6 @@
 #include <regex>
 #include <vector>
 
-
 using StringDictionary = std::map<std::string, std::string>;
 
 class StubGenerator{
